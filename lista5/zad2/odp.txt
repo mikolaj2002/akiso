@@ -1,0 +1,3 @@
+a) Da się obsłużyć wszytskie sygnały poza 9 i 19, czyli odpowiednio SIGKILL i SIGSTOP.
+b) Z poziomu zwykłego użytkownika nie da się wysłać SIGKILL do procesu init. Z poziomu root'a jest to możliwe, jednak nie daje żadnego rezultatu.
+c) Spośród 1000 wysłanych sygnałów program odbierał tylko około 20, po czym kończył swoje działanie.
