@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
                 if (strcmp(args[pipe_size].values[idx], "|") == 0)
                 {
                     args[pipe_size].values[idx] = NULL;
-                    args[pipe_size].arg_count = idx + 1;
+                    args[pipe_size].arg_count = idx;
                     pipe_size++;
                     idx = -1;
                 }
@@ -193,13 +193,36 @@ void exec_pipe(int pipe_size, struct pipe_arguments args[])
         args[pipe_size - 1].arg_count--;
     }
 
-    //TODO: dodać obsługę przekierować dla pipe'ów
-
     pid_t pids[pipe_size];
 
     int pipefd[2];
     for (int i = 0; i < pipe_size; i++)
     {
+        //< > 2>
+        char *file_in = NULL, *file_out = NULL, *file_err = NULL;
+        for (int j = args[i].arg_count - 1; j >= args[i].arg_count - 3 && j >= 0; j--)
+        {
+            switch (args[i].values[j][0])
+            {
+            case '<':
+                file_in = args[i].values[j] + 1;
+                args[i].values[j] = NULL;
+                break;
+            case '>':
+                file_out = args[i].values[j] + 1;
+                args[i].values[j] = NULL;
+                break;
+            case '2':
+                if (args[i].values[j][1] == '>')
+                {
+                    file_err = args[i].values[j] + 2;
+                    args[i].values[j] = NULL;
+                }
+                break;
+            }
+        }
+        //< > 2>
+
         int in = -1;
         if (i != 0)
             in = pipefd[0];
@@ -211,7 +234,7 @@ void exec_pipe(int pipe_size, struct pipe_arguments args[])
             out = pipefd[1];
         }
 
-        pids[i] = exec(args[i].values, in, out, NULL, NULL, NULL);
+        pids[i] = exec(args[i].values, in, out, file_in, file_out, file_err);
 
         if (in != -1)
             close(in);
